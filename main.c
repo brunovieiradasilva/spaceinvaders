@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <allegro5/allegro.h>
+#include <allegro5/allegro5.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
@@ -7,8 +8,7 @@
 
 const float FPS = 100;
 
-const int SCREEN_W = 960;
-const int SCREEN_H = 540;
+
 
 int main(int argc, char const *argv[])
 {
@@ -16,6 +16,7 @@ int main(int argc, char const *argv[])
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
+	ALLEGRO_FONT* font = al_create_builtin_font();
 
 	if (!al_init())
 	{
@@ -133,6 +134,8 @@ int main(int argc, char const *argv[])
 	}
 
 	//procedimentos de destruição
+	destroy_imgs();
+	al_destroy_font(font);
 	al_destroy_timer(timer);
 	al_destroy_display(display);
 	al_destroy_event_queue(event_queue);
