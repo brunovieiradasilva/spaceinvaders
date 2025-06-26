@@ -5,7 +5,7 @@ FOLDER=C:
 FOLDER_NAME=\allegro-$(ALLEGRO_VERSION)-mingw-$(MINGW_VERSION)
 PATH_ALLEGRO=$(FOLDER)$(FOLDER_NAME)
 LIB_ALLEGRO=\lib\liballegro-$(ALLEGRO_VERSION)-monolith-mt.a
-INCLUDE_ALLEGRO=\include\allegro5
+INCLUDE_ALLEGRO=\include
 
 all: main.exe	
 

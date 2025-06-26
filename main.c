@@ -8,14 +8,25 @@
 #include <windows.h>
 #include "libs/invaders.h"
 
-const float FPS = 100;
+const float FPS = 30;
+ALLEGRO_BITMAP *background_png = NULL;
+
+void init_background()
+{
+	background_png = al_load_bitmap("imgs/background.png");
+	if (!background_png)
+	{
+		printf("Nao foi possivel carregar a imagem de fundo\n");
+		return;
+	}
+
+	al_draw_bitmap(background_png, 0,0,0);
+}
 
 void draw_menu()
 {
-	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_filled_rectangle(0, 0,
-							50, 50,
-						al_map_rgb(0, 255, 0));
+
+	//	al_draw_filled_rectangle(0, 0, 50, 50, al_map_rgb(0, 255, 0));
 }
 
 int main(int argc, char const *argv[])
@@ -24,7 +35,7 @@ int main(int argc, char const *argv[])
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
-	ALLEGRO_FONT *font = al_create_builtin_font();
+	ALLEGRO_FONT *font = NULL;
 
 	if (!al_init())
 	{
@@ -79,9 +90,10 @@ int main(int argc, char const *argv[])
 		fprintf(stderr, "failed to load tff font module!\n");
 		return -1;
 	}
+
 	/*
 		//carrega o arquivo arial.ttf da fonte Arial e define que sera usado o tamanho 32 (segundo parametro)
-		ALLEGRO_FONT *size_32 = al_load_font("arial.ttf", 32, 1);
+		ALLEGRO_FONT font = al_load_font("arial.ttf", 32, 1);
 		if(size_32 == NULL) {
 			fprintf(stderr, "font file does not exist or cannot be accessed!\n");
 		}
@@ -106,9 +118,12 @@ int main(int argc, char const *argv[])
 	al_register_event_source(event_queue, al_get_mouse_event_source());
 
 	al_start_timer(timer);
+
 	int playing = 1;
+	init_background();
 	while (playing)
 	{
+		printf("entrou\n");
 		ALLEGRO_EVENT ev;
 		// espera por um evento e o armazena na variavel de evento ev
 		al_wait_for_event(event_queue, &ev);
@@ -117,6 +132,7 @@ int main(int argc, char const *argv[])
 		if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
 			draw_menu();
+
 			// atualiza a tela (quando houver algo para mostrar)
 			al_flip_display();
 
@@ -131,7 +147,7 @@ int main(int argc, char const *argv[])
 		// evento clique de mouse
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
 		{
-			Beep(500, 500);
+			Beep(500, 250);
 			printf("\nmouse clicado em: %d, %d", ev.mouse.x, ev.mouse.y);
 		}
 		// evento pressionar de tecla
@@ -143,7 +159,7 @@ int main(int argc, char const *argv[])
 	}
 
 	// procedimentos de destruição
-	destroy_imgs();
+	al_destroy_bitmap(background_png);
 	al_destroy_font(font);
 	al_destroy_timer(timer);
 	al_destroy_display(display);
