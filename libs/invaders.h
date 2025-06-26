@@ -15,8 +15,8 @@ const int SHIP_H = 60;
 
 typedef struct Ship{
 float x;
-}
+}Ship;
 
-void init_ship(*Ship);
+void init_ship(Ship *);
 
-destroy_imgs();
+void destroy_imgs();

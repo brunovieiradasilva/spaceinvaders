@@ -6,10 +6,17 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
 #include <windows.h>
+#include "libs/invaders.h"
 
 const float FPS = 100;
 
-
+void draw_menu()
+{
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_filled_rectangle(0, 0,
+							50, 50,
+						al_map_rgb(0, 255, 0));
+}
 
 int main(int argc, char const *argv[])
 {
@@ -17,7 +24,7 @@ int main(int argc, char const *argv[])
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
-	ALLEGRO_FONT* font = al_create_builtin_font();
+	ALLEGRO_FONT *font = al_create_builtin_font();
 
 	if (!al_init())
 	{
@@ -109,33 +116,33 @@ int main(int argc, char const *argv[])
 		// se o tipo de evento for um evento do temporizador, ou seja, se o tempo passou de t para t+1
 		if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
-
+			draw_menu();
 			// atualiza a tela (quando houver algo para mostrar)
 			al_flip_display();
 
 			if (al_get_timer_count(timer) % (int)FPS == 0)
 				printf("\n%d segundos se passaram...", (int)(al_get_timer_count(timer) / FPS));
 		}
-		//evento fechamento de tela
+		// evento fechamento de tela
 		else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		{
 			playing = 0;
 		}
-		//evento clique de mouse
+		// evento clique de mouse
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
 		{
 			Beep(500, 500);
 			printf("\nmouse clicado em: %d, %d", ev.mouse.x, ev.mouse.y);
 		}
-		//evento pressionar de tecla
+		// evento pressionar de tecla
 		else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
-			//imprime qual tecla foi
+			// imprime qual tecla foi
 			printf("\ncodigo tecla: %d", ev.keyboard.keycode);
 		}
 	}
 
-	//procedimentos de destruição
+	// procedimentos de destruição
 	destroy_imgs();
 	al_destroy_font(font);
 	al_destroy_timer(timer);
