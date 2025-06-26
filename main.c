@@ -5,6 +5,7 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <windows.h>
 
 const float FPS = 100;
 
@@ -123,6 +124,7 @@ int main(int argc, char const *argv[])
 		//evento clique de mouse
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
 		{
+			Beep(500, 500);
 			printf("\nmouse clicado em: %d, %d", ev.mouse.x, ev.mouse.y);
 		}
 		//evento pressionar de tecla
