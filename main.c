@@ -8,6 +8,8 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 
+#include <stdlib.h>
+#include <time.h>
 #include <windows.h>
 #include "libs/invaders.h"
 
@@ -19,10 +21,19 @@ ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
+ALLEGRO_FILE *record_file;
+int record_normal = 0;
+int record_dificil = 0;
 
 Button btn_normal = {0, 0, 0, 0, "dificuldade normal"};
 Button btn_dificil = {0, 0, 0, 0, "dificuldade dificil"};
 Button btn_sair = {0, 0, 0, 0, "sair"};
+
+int randon(int lo, int hi)
+{
+	return lo + (rand() % (hi - lo));
+}
+
 void must_init(bool test, const char *description)
 {
 	if (test)
@@ -83,6 +94,18 @@ void draw_menu()
 	al_draw_text(font, al_map_rgb(255, 255, 255), center_x, btn_normal.y + (btn_normal.h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn_normal.text);
 	al_draw_text(font, al_map_rgb(255, 255, 255), center_x, btn_dificil.y + (btn_dificil.h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn_dificil.text);
 	al_draw_text(font, al_map_rgb(255, 255, 255), btn_sair.x + btn_sair.w / 2, btn_sair.y + (btn_sair.h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn_sair.text);
+
+	// --- Desenha recorde no canto superior esquerdo ---
+	int rec_x = 30;
+	int rec_y = 20;
+	char buf_normal[16], buf_dificil[16];
+	sprintf(buf_normal, "%d", record_normal);
+	sprintf(buf_dificil, "%d", record_dificil);
+	al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "recorde");
+	al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + text_h + 5, 0, "normal:");
+	al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + text_h + 5, 0, buf_normal);
+	al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + 2 * text_h + 10, 0, "dificil:");
+	al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + 2 * text_h + 10, 0, buf_dificil);
 }
 
 bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
@@ -111,6 +134,7 @@ bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2)
 
 int main(int argc, char const *argv[])
 {
+	srand(time(NULL));
 	int in_menu = 1;
 	if (!al_init())
 	{
@@ -178,6 +202,22 @@ int main(int argc, char const *argv[])
 
 	al_start_timer(timer);
 
+	record_file = al_fopen("record.txt", "r+");
+	if (!record_file)
+	{
+		record_file = al_fopen("record.txt", "w+");
+		al_fputs(record_file, "0\n");
+		al_fputs(record_file, "0\n");
+		al_fflush(record_file);
+		al_fseek(record_file, 0, ALLEGRO_SEEK_SET);
+	}
+	// Lê os recordes do arquivo só uma vez
+	char buf[32];
+	if (al_fgets(record_file, buf, 32))
+		sscanf(buf, "%d", &record_normal);
+	if (al_fgets(record_file, buf, 32))
+		sscanf(buf, "%d", &record_dificil);
+
 	int playing = 1;
 	init_background();
 	draw_menu();
@@ -241,6 +281,7 @@ int main(int argc, char const *argv[])
 	}
 
 	// procedimentos de destruição
+	al_fclose(record_file);
 	al_destroy_bitmap(background_png);
 	al_destroy_sample(sound);
 	al_destroy_font(font);
