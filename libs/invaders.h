@@ -19,4 +19,10 @@ float x;
 
 void init_ship(Ship *);
 
-void destroy_imgs();
+typedef struct Button{
+    int x;
+    int y;
+    int w;
+    int h;
+    char *text;
+}Button;
