@@ -5,11 +5,23 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
+
 #include <windows.h>
 #include "libs/invaders.h"
 
 const float FPS = 30;
 ALLEGRO_BITMAP *background_png = NULL;
+ALLEGRO_SAMPLE *sound = NULL;
+void must_init(bool test, const char *description)
+{
+	if (test)
+		return;
+
+	printf("couldn't initialize %s\n", description);
+	exit(1);
+}
 
 void init_background()
 {
@@ -20,13 +32,27 @@ void init_background()
 		return;
 	}
 
-	al_draw_bitmap(background_png, 0,0,0);
+	al_draw_bitmap(background_png, 0, 0, 0);
+
+	sound = al_load_sample("sounds/sound.wav");
+	must_init(sound, "sound");
+	al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 }
 
 void draw_menu()
 {
 
 	//	al_draw_filled_rectangle(0, 0, 50, 50, al_map_rgb(0, 255, 0));
+}
+
+bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
+{
+    if(ax1 > bx2) return false;
+    if(ax2 < bx1) return false;
+    if(ay1 > by2) return false;
+    if(ay2 < by1) return false;
+
+    return true;
 }
 
 int main(int argc, char const *argv[])
@@ -43,12 +69,10 @@ int main(int argc, char const *argv[])
 		return -1;
 	}
 
-	// inicializa o modulo que permite carregar imagens no jogo
-	if (!al_init_image_addon())
-	{
-		fprintf(stderr, "failed to initialize image module!\n");
-		return -1;
-	}
+	must_init(al_init_image_addon(), "imagens");
+	must_init(al_install_audio(), "audio");
+	must_init(al_init_acodec_addon(), "audio codecs");
+	must_init(al_reserve_samples(16), "reserve samples");
 
 	// cria um temporizador que incrementa uma unidade a cada 1.0/FPS segundos
 	timer = al_create_timer(1.0 / FPS);
@@ -65,6 +89,9 @@ int main(int argc, char const *argv[])
 		fprintf(stderr, "failed to create display!\n");
 		al_destroy_timer(timer);
 		return -1;
+	}else{
+		al_set_window_title(display, "Space Invaders");
+		al_set_display_icon(display, al_load_bitmap("imgs/alienship.png"));
 	}
 
 	// instala o teclado
@@ -160,6 +187,7 @@ int main(int argc, char const *argv[])
 
 	// procedimentos de destruição
 	al_destroy_bitmap(background_png);
+	al_destroy_sample(sound);
 	al_destroy_font(font);
 	al_destroy_timer(timer);
 	al_destroy_display(display);
