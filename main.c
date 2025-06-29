@@ -22,12 +22,12 @@ ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
 ALLEGRO_FILE *record_file;
+
 int record_normal = 0;
 int record_dificil = 0;
-
-Button btn_normal = {0, 0, 0, 0, "dificuldade normal"};
-Button btn_dificil = {0, 0, 0, 0, "dificuldade dificil"};
-Button btn_sair = {0, 0, 0, 0, "sair"};
+int in_menu = 1;
+int dificulty = 0; // 0: normal, 1: dificil
+int players = 1;   // 1: player, 2: multiplayer
 
 int randon(int lo, int hi)
 {
@@ -52,60 +52,115 @@ void init_background()
 		return;
 	}
 
-	al_draw_bitmap(background_png, 0, 0, 0);
-
 	sound = al_load_sample("sounds/sound.wav");
 	must_init(sound, "sound");
-	al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 }
 
-void draw_menu()
+void draw_background()
 {
-	int btn_w = 300;
-	int btn_h = 72;
-	int spacing = 36;
-	int center_x = SCREEN_W / 2;
-	int center_y = SCREEN_H / 2;
+	if (background_png)
+	{
+		al_draw_bitmap(background_png, 0, 0, 0);
+		al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+	}
+	else
+	{
+		printf("Imagem de fundo nao carregada\n");
+	}
+}
 
-	btn_normal.x = center_x - btn_w / 2;
-	btn_normal.y = center_y - btn_h - spacing / 2;
-	btn_normal.w = btn_w;
-	btn_normal.h = btn_h;
-	btn_dificil.x = center_x - btn_w / 2;
-	btn_dificil.y = center_y + spacing / 2;
-	btn_dificil.w = btn_w;
-	btn_dificil.h = btn_h;
-	btn_sair.x = SCREEN_W - 120 - 30;
-	btn_sair.y = SCREEN_H - 50 - 30;
-	btn_sair.w = 120;
-	btn_sair.h = 50;
+void draw_menu(Button *btn1, Button *btn2, Button *btn3)
+{
+	al_clear_to_color(al_map_rgb(0, 0, 0));
 
-	// Desenha os botões
-	al_draw_filled_rounded_rectangle(btn_normal.x, btn_normal.y, btn_normal.x + btn_normal.w, btn_normal.y + btn_normal.h, 15, 15, al_map_rgb(40, 180, 40));
-	al_draw_filled_rounded_rectangle(btn_dificil.x, btn_dificil.y, btn_dificil.x + btn_dificil.w, btn_dificil.y + btn_dificil.h, 15, 15, al_map_rgb(180, 40, 40));
-	al_draw_filled_rounded_rectangle(btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h, 12, 12, al_map_rgb(60, 60, 60));
+	btn3->text = "sair";
+	btn3->x = SCREEN_W - 120 - 30;
+	btn3->y = SCREEN_H - 50 - 30;
+	btn3->w = 120;
+	btn3->h = 50;
 
-	// Desenha as bordas dos botões
-	al_draw_rounded_rectangle(btn_normal.x, btn_normal.y, btn_normal.x + btn_normal.w, btn_normal.y + btn_normal.h, 15, 15, al_map_rgb(0, 0, 0), 3);
-	al_draw_rounded_rectangle(btn_dificil.x, btn_dificil.y, btn_dificil.x + btn_dificil.w, btn_dificil.y + btn_dificil.h, 15, 15, al_map_rgb(0, 0, 0), 3);
-	al_draw_rounded_rectangle(btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h, 12, 12, al_map_rgb(0, 0, 0), 2);
+	if (in_menu)
+	{
+		int btn_w = 300;
+		int btn_h = 72;
+		int spacing = 36;
+		int center_x = SCREEN_W / 2;
+		int center_y = SCREEN_H / 2;
 
-	int text_h = al_get_font_line_height(font);
-	al_draw_text(font, al_map_rgb(255, 255, 255), center_x, btn_normal.y + (btn_normal.h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn_normal.text);
-	al_draw_text(font, al_map_rgb(255, 255, 255), center_x, btn_dificil.y + (btn_dificil.h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn_dificil.text);
-	al_draw_text(font, al_map_rgb(255, 255, 255), btn_sair.x + btn_sair.w / 2, btn_sair.y + (btn_sair.h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn_sair.text);
+		btn1->x = center_x - btn_w / 2;
+		btn1->y = center_y - btn_h - spacing / 2;
+		btn1->w = btn_w;
+		btn1->h = btn_h;
+		btn2->x = center_x - btn_w / 2;
+		btn2->y = center_y + spacing / 2;
+		btn2->w = btn_w;
+		btn2->h = btn_h;
 
-	// --- Desenha recorde no canto superior esquerdo ---
-	int rec_x = 30;
-	int rec_y = 20;
-	char buf_normal[16], buf_dificil[16];
-	sprintf(buf_normal, "%d", record_normal);
-	sprintf(buf_dificil, "%d", record_dificil);
-	al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "recorde");
-	al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + text_h + 5, 0, "normal:");
-	al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + text_h + 5, 0, buf_normal);
-	al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + 2 * text_h + 10, 0, "dificil:");
-	al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + 2 * text_h + 10, 0, buf_dificil);
+		al_clear_to_color(al_map_rgb(0, 0, 0));
+		al_draw_bitmap(background_png, 0, 0, 0);
+
+		// Desenha os botões
+		al_draw_filled_rounded_rectangle(btn1->x, btn1->y, btn1->x + btn1->w, btn1->y + btn1->h, 15, 15, al_map_rgb(40, 180, 40));
+		al_draw_filled_rounded_rectangle(btn2->x, btn2->y, btn2->x + btn2->w, btn2->y + btn2->h, 15, 15, al_map_rgb(180, 40, 40));
+		al_draw_filled_rounded_rectangle(btn3->x, btn3->y, btn3->x + btn3->w, btn3->y + btn3->h, 12, 12, al_map_rgb(60, 60, 60));
+
+		// Desenha as bordas dos botões
+		al_draw_rounded_rectangle(btn1->x, btn1->y, btn1->x + btn1->w, btn1->y + btn1->h, 15, 15, al_map_rgb(0, 0, 0), 3);
+		al_draw_rounded_rectangle(btn2->x, btn2->y, btn2->x + btn2->w, btn2->y + btn2->h, 15, 15, al_map_rgb(0, 0, 0), 3);
+		al_draw_rounded_rectangle(btn3->x, btn3->y, btn3->x + btn3->w, btn3->y + btn3->h, 12, 12, al_map_rgb(0, 0, 0), 2);
+
+		int text_h = al_get_font_line_height(font);
+		al_draw_text(font, al_map_rgb(255, 255, 255), center_x, btn1->y + (btn1->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn1->text);
+		al_draw_text(font, al_map_rgb(255, 255, 255), center_x, btn2->y + (btn2->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn2->text);
+		al_draw_text(font, al_map_rgb(255, 255, 255), btn3->x + btn3->w / 2, btn3->y + (btn3->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn3->text);
+
+		// --- Desenha recorde no canto superior esquerdo ---
+		int rec_x = 30;
+		int rec_y = 20;
+		char buf_normal[16], buf_dificil[16];
+		sprintf(buf_normal, "%d", record_normal);
+		sprintf(buf_dificil, "%d", record_dificil);
+		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "recorde");
+		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + text_h + 5, 0, "normal:");
+		al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + text_h + 5, 0, buf_normal);
+		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + 2 * text_h + 10, 0, "dificil:");
+		al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + 2 * text_h + 10, 0, buf_dificil);
+	}
+	else
+	{
+		int btn_w = 220;
+		int btn_h = 72;
+		int spacing = 40;
+		int center_x = SCREEN_W / 2;
+		int center_y = SCREEN_H / 2;
+
+		btn1->x = center_x - btn_w - spacing / 2;
+		btn1->y = center_y - btn_h / 2;
+		btn1->w = btn_w;
+		btn1->h = btn_h;
+		btn1->text = "singleplayer";
+		btn2->x = center_x + spacing / 2;
+		btn2->y = center_y - btn_h / 2;
+		btn2->w = btn_w;
+		btn2->h = btn_h;
+		btn2->text = "multiplayer";
+
+		// Desenha os botões
+		al_draw_filled_rounded_rectangle(btn1->x, btn1->y, btn1->x + btn1->w, btn1->y + btn1->h, 15, 15, al_map_rgb(40, 120, 200));
+		al_draw_filled_rounded_rectangle(btn2->x, btn2->y, btn2->x + btn2->w, btn2->y + btn2->h, 15, 15, al_map_rgb(200, 120, 40));
+		al_draw_filled_rounded_rectangle(btn3->x, btn3->y, btn3->x + btn3->w, btn3->y + btn3->h, 12, 12, al_map_rgb(60, 60, 60));
+
+		// Bordas
+		al_draw_rounded_rectangle(btn1->x, btn1->y, btn1->x + btn1->w, btn1->y + btn1->h, 15, 15, al_map_rgb(0, 0, 0), 3);
+		al_draw_rounded_rectangle(btn2->x, btn2->y, btn2->x + btn2->w, btn2->y + btn2->h, 15, 15, al_map_rgb(0, 0, 0), 3);
+		al_draw_rounded_rectangle(btn3->x, btn3->y, btn3->x + btn3->w, btn3->y + btn3->h, 12, 12, al_map_rgb(0, 0, 0), 2);
+
+		// Texto centralizado
+		int text_h = al_get_font_line_height(font);
+		al_draw_text(font, al_map_rgb(255, 255, 255), btn1->x + btn1->w / 2, btn1->y + (btn1->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn1->text);
+		al_draw_text(font, al_map_rgb(255, 255, 255), btn2->x + btn2->w / 2, btn2->y + (btn2->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn2->text);
+		al_draw_text(font, al_map_rgb(255, 255, 255), btn3->x + btn3->w / 2, btn3->y + (btn3->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn3->text);
+	}
 }
 
 bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
@@ -134,8 +189,13 @@ bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2)
 
 int main(int argc, char const *argv[])
 {
+
+	Button btn_normal = {0, 0, 0, 0, "dificuldade normal"};
+	Button btn_dificil = {0, 0, 0, 0, "dificuldade dificil"};
+	Button btn_singleplayer = {0, 0, 0, 0, "singleplayer"};
+	Button btn_multiplayer = {0, 0, 0, 0, "multiplayer"};
+	Button btn_sair = {0, 0, 0, 0, "sair"};
 	srand(time(NULL));
-	int in_menu = 1;
 	if (!al_init())
 	{
 		fprintf(stderr, "failed to initialize allegro!\n");
@@ -211,7 +271,7 @@ int main(int argc, char const *argv[])
 		al_fflush(record_file);
 		al_fseek(record_file, 0, ALLEGRO_SEEK_SET);
 	}
-	// Lê os recordes do arquivo só uma vez
+	// Lê os recordes do arquivo
 	char buf[32];
 	if (al_fgets(record_file, buf, 32))
 		sscanf(buf, "%d", &record_normal);
@@ -220,7 +280,8 @@ int main(int argc, char const *argv[])
 
 	int playing = 1;
 	init_background();
-	draw_menu();
+	draw_background();
+	Ship ship;
 	while (playing)
 	{
 		ALLEGRO_EVENT ev;
@@ -231,6 +292,16 @@ int main(int argc, char const *argv[])
 		if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
 			// atualiza a tela (quando houver algo para mostrar)
+			if (in_menu)
+			{
+				draw_menu(&btn_normal, &btn_dificil, &btn_sair);
+			}
+			else
+			{
+				al_clear_to_color(al_map_rgb(0, 0, 0));
+				draw_menu(&btn_singleplayer, &btn_multiplayer, &btn_sair);
+			}
+
 			al_flip_display();
 
 			if (al_get_timer_count(timer) % (int)FPS == 0)
@@ -253,22 +324,25 @@ int main(int argc, char const *argv[])
 				{
 					// Exibe uma mensagem de clique no botão normal
 					printf("\nDificuldade normal");
-					in_menu = 0; // Sai do menu
+					in_menu = 0;
 				}
-
 				// Verifica se o clique foi no botão de dificuldade difícil
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_dificil.x, btn_dificil.y, btn_dificil.x + btn_dificil.w, btn_dificil.y + btn_dificil.h))
 				{
-					// Exibe uma mensagem de clique no botão difícil
 					printf("\nDificuldade dificil");
-					in_menu = 0; // Sai do menu
+					in_menu = 0;
 				}
-
 				// Verifica se o clique foi no botão sair
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
 				{
 					printf("\nSair do jogo");
 					playing = 0; // Fecha o jogo
+				}
+			}else{
+				if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
+				{
+					printf("\nvoltar ao menu");
+					in_menu = 1; // volta ao menu
 				}
 			}
 		}
@@ -277,6 +351,16 @@ int main(int argc, char const *argv[])
 		{
 			// imprime qual tecla foi
 			printf("\ncodigo tecla: %d", ev.keyboard.keycode);
+			if (ev.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
+			{
+				printf("\nSair do jogo");
+				playing = 0; // Fecha o jogo
+			}
+
+			if (!in_menu)
+			{
+				ship_keyboard(&ship, ev.keyboard.keycode);
+			}
 		}
 	}
 

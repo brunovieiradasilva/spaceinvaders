@@ -9,17 +9,17 @@ INCLUDE_ALLEGRO=\include
 
 all: main.exe	
 
-main.exe: main.o
-	gcc -o main.exe main.o $(PATH_ALLEGRO)$(LIB_ALLEGRO)
+main.exe: main.o invaders.o
+	gcc -o main.exe main.o invaders.o $(PATH_ALLEGRO)$(LIB_ALLEGRO)
 
 main.o: main.c
-	gcc -I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) libs\invaders.c -c main.c	
+	gcc -I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) -c main.c	
 
 invaders.exe: invaders.o
 	gcc -o invaders.exe invaders.o $(PATH_ALLEGRO)$(LIB_ALLEGRO)
 
-invaders.o: invaders.c
-	gcc -I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) libs\invaders.c -c invaders.c	
+invaders.o: libs/invaders.c
+	gcc -I $(PATH_ALLEGRO)$(INCLUDE_ALLEGRO) -c libs/invaders.c	
 clean:
 	del main.o 
 	del main.exe

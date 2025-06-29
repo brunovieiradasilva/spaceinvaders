@@ -6,18 +6,20 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
 
-const int SCREEN_W = 1080;
-const int SCREEN_H = 720;
-const int WORLD_H = 60;
+#define SCREEN_W 1080
+#define SCREEN_H 720
+#define WORLD_H 60
 
-const int SHIP_W = 60;
-const int SHIP_H = 60;
+#define SHIP_W 100
+#define SHIP_H 50
+#define SHIP_Y (SCREEN_H - 60 - SHIP_H)
+#define SHIP_SPEED 10
 
 typedef struct Ship{
 float x;
 }Ship;
 
-void init_ship(Ship *);
+void init_ship(Ship *ships);
 
 typedef struct Button{
     int x;
@@ -26,3 +28,7 @@ typedef struct Button{
     int h;
     char *text;
 }Button;
+
+void ship_atack();
+
+void ship_keyboard(Ship *s, int t);
