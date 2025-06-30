@@ -13,13 +13,15 @@
 #define SHIP_W 100
 #define SHIP_H 50
 #define SHIP_Y (SCREEN_H - 60 - SHIP_H)
-#define SHIP_SPEED 10
+#define SHIP_SPEED 70
 
 typedef struct Ship{
 float x;
 }Ship;
 
 void init_ship(Ship *ships);
+
+void draw_ship(Ship *ships);
 
 typedef struct Button{
     int x;

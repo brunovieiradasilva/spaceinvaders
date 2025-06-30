@@ -16,6 +16,8 @@
 const float FPS = 30;
 
 ALLEGRO_BITMAP *background_png = NULL;
+ALLEGRO_BITMAP *background_png1 = NULL;
+ALLEGRO_BITMAP *background_png2 = NULL;
 ALLEGRO_SAMPLE *sound = NULL;
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -26,12 +28,12 @@ ALLEGRO_FILE *record_file;
 int record_normal = 0;
 int record_dificil = 0;
 int in_menu = 1;
-int dificulty = 0; // 0: normal, 1: dificil
-int players = 1;   // 1: player, 2: multiplayer
-
+int dificulty = 0;		 // 0: normal, 1: dificil
+int players = 1;		 // 1: player, 2: multiplayer
+int background_type = 0; // 0: background_png, 1: background_png1, 2: background_png2
 int randon(int lo, int hi)
 {
-	return lo + (rand() % (hi - lo));
+	return lo + (rand() % (hi - lo + 1));
 }
 
 void must_init(bool test, const char *description)
@@ -46,22 +48,42 @@ void must_init(bool test, const char *description)
 void init_background()
 {
 	background_png = al_load_bitmap("imgs/background.png");
+	background_png1 = al_load_bitmap("imgs/background1.png");
+	background_png2 = al_load_bitmap("imgs/background2.png");
 	if (!background_png)
 	{
-		printf("Nao foi possivel carregar a imagem de fundo\n");
+		printf("Nao foi possivel carregar a imagem de fundo 0\n");
 		return;
 	}
 
+	if (!background_png1)
+	{
+		printf("Nao foi possivel carregar a imagem de fundo 1\n");
+		return;
+	}
+
+	if (!background_png2)
+	{
+		printf("Nao foi possivel carregar a imagem de fundo 2\n");
+		return;
+	}
 	sound = al_load_sample("sounds/sound.wav");
 	must_init(sound, "sound");
 }
 
-void draw_background()
+void draw_background(int type)
 {
-	if (background_png)
+	if (type == 0 && background_png)
 	{
 		al_draw_bitmap(background_png, 0, 0, 0);
-		al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+	}
+	else if (type == 1 && background_png1)
+	{
+		al_draw_bitmap(background_png1, 0, 0, 0);
+	}
+	else if (type == 2 && background_png2)
+	{
+		al_draw_bitmap(background_png2, 0, 0, 0);
 	}
 	else
 	{
@@ -69,6 +91,23 @@ void draw_background()
 	}
 }
 
+void play_music(int type)
+{
+	if (type == 0)
+	{
+		if (al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL) == 0)
+		{
+			printf("Erro ao tocar a musica\n");
+		}
+	}
+	else if (type == 1)
+	{
+		if (al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL) == 0)
+		{
+			printf("Erro ao tocar a musica\n");
+		}
+	}
+}
 void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 {
 	al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -79,7 +118,7 @@ void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 	btn3->w = 120;
 	btn3->h = 50;
 
-	if (in_menu)
+	if (in_menu == 1)
 	{
 		int btn_w = 300;
 		int btn_h = 72;
@@ -97,7 +136,7 @@ void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 		btn2->h = btn_h;
 
 		al_clear_to_color(al_map_rgb(0, 0, 0));
-		al_draw_bitmap(background_png, 0, 0, 0);
+		draw_background(0);
 
 		// Desenha os botões
 		al_draw_filled_rounded_rectangle(btn1->x, btn1->y, btn1->x + btn1->w, btn1->y + btn1->h, 15, 15, al_map_rgb(40, 180, 40));
@@ -126,7 +165,7 @@ void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + 2 * text_h + 10, 0, "dificil:");
 		al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + 2 * text_h + 10, 0, buf_dificil);
 	}
-	else
+	else if (in_menu == 2)
 	{
 		int btn_w = 220;
 		int btn_h = 72;
@@ -195,6 +234,7 @@ int main(int argc, char const *argv[])
 	Button btn_singleplayer = {0, 0, 0, 0, "singleplayer"};
 	Button btn_multiplayer = {0, 0, 0, 0, "multiplayer"};
 	Button btn_sair = {0, 0, 0, 0, "sair"};
+
 	srand(time(NULL));
 	if (!al_init())
 	{
@@ -280,8 +320,11 @@ int main(int argc, char const *argv[])
 
 	int playing = 1;
 	init_background();
-	draw_background();
-	Ship ship;
+	play_music(0); // Toca a música de fundo
+	Ship ship = {0};
+	Ship ship2 = {0};
+	init_ship(&ship);
+	init_ship(&ship2);
 	while (playing)
 	{
 		ALLEGRO_EVENT ev;
@@ -292,14 +335,20 @@ int main(int argc, char const *argv[])
 		if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
 			// atualiza a tela (quando houver algo para mostrar)
-			if (in_menu)
+			if (in_menu == 1)
 			{
 				draw_menu(&btn_normal, &btn_dificil, &btn_sair);
+			}
+			else if (in_menu == 2)
+			{
+				al_clear_to_color(al_map_rgb(0, 0, 0));
+				draw_menu(&btn_singleplayer, &btn_multiplayer, &btn_sair);
 			}
 			else
 			{
 				al_clear_to_color(al_map_rgb(0, 0, 0));
-				draw_menu(&btn_singleplayer, &btn_multiplayer, &btn_sair);
+				draw_background(background_type);
+				draw_ship(&ship);
 			}
 
 			al_flip_display();
@@ -317,20 +366,24 @@ int main(int argc, char const *argv[])
 		{
 			Beep(500, 150);
 			printf("\nmouse clicado em: %d, %d", ev.mouse.x, ev.mouse.y);
-			if (in_menu)
+			if (in_menu == 1)
 			{
 				// Verifica se o clique foi no botão de dificuldade normal
 				if (collide_btn(ev.mouse.x, ev.mouse.y, btn_normal.x, btn_normal.y, btn_normal.x + btn_normal.w, btn_normal.y + btn_normal.h))
 				{
 					// Exibe uma mensagem de clique no botão normal
 					printf("\nDificuldade normal");
-					in_menu = 0;
+					in_menu = 2;
+					dificulty = 0;					// Define a dificuldade como normal
+					background_type = randon(0, 2); // Escolhe um fundo aleatório
 				}
 				// Verifica se o clique foi no botão de dificuldade difícil
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_dificil.x, btn_dificil.y, btn_dificil.x + btn_dificil.w, btn_dificil.y + btn_dificil.h))
 				{
 					printf("\nDificuldade dificil");
-					in_menu = 0;
+					in_menu = 2;
+					dificulty = 1;					// Define a dificuldade como difícil
+					background_type = randon(0, 2); // Escolhe um fundo aleatório
 				}
 				// Verifica se o clique foi no botão sair
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
@@ -338,8 +391,22 @@ int main(int argc, char const *argv[])
 					printf("\nSair do jogo");
 					playing = 0; // Fecha o jogo
 				}
-			}else{
-				if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
+			}
+			else
+			{
+				if (collide_btn(ev.mouse.x, ev.mouse.y, btn_singleplayer.x, btn_singleplayer.y, btn_singleplayer.x + btn_singleplayer.w, btn_singleplayer.y + btn_singleplayer.h))
+				{
+					printf("\nSingleplayer selecionado");
+					players = 1;
+					in_menu = 0; // inicia o jogo singleplayer
+				}
+				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_multiplayer.x, btn_multiplayer.y, btn_multiplayer.x + btn_multiplayer.w, btn_multiplayer.y + btn_multiplayer.h))
+				{
+					printf("\nMultiplayer selecionado");
+					players = 2;
+					in_menu = 0; // inicia o jogo multiplayer
+				}
+				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
 				{
 					printf("\nvoltar ao menu");
 					in_menu = 1; // volta ao menu
@@ -367,6 +434,8 @@ int main(int argc, char const *argv[])
 	// procedimentos de destruição
 	al_fclose(record_file);
 	al_destroy_bitmap(background_png);
+	al_destroy_bitmap(background_png1);
+	al_destroy_bitmap(background_png2);
 	al_destroy_sample(sound);
 	al_destroy_font(font);
 	al_destroy_timer(timer);
