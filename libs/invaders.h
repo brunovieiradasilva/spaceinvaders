@@ -69,7 +69,9 @@ void draw_alien(Alien *alien);
 
 int alien_move(Alien *alien);
 
-void alien_shot(Alien *invasion[4][6], Shot *shot);
+void alien_atack( Shot *shot, Alien *invasion[4][6]);
+
+void init_alien_shot(Shot *shot, Alien *invasion[4][6]);
 
 void destroy_alien(Alien *alien);
 
@@ -97,7 +99,7 @@ void init_shots_images();
 
 void init_shot(Shot *shot,Ship *ship, int type);
 
-void draw_shot(Shot *shot, Alien *alien);
+void draw_shot(Shot *shot);
 
 void move_shot(Shot *shot, int dificulty);
 

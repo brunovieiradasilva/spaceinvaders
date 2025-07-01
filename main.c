@@ -357,19 +357,19 @@ int main(int argc, char const *argv[])
 	play_music(0); // Toca a música de fundo
 
 	Ship ship = {0};
-	Ship ship2 = {0};
+	Ship ship1 = {0};
 	init_ship(&ship);
-	init_ship(&ship2);
+	init_ship(&ship1);
 
 	Alien *invasion[4][6] = {0};   // Matriz de invasores
 	init_alien_invasion(invasion); // Inicializa os invasores
 
-	Shot shot = {0};			  // tiro
-	Shot shot2 = {0};			  // tiro do segundo player
-	Shot shot3 = {0};			  // tiro do alien
-	init_shot(&shot, &ship, 0);	  // Inicializa o tiro
-	init_shot(&shot2, &ship2, 1); // Inicializa o tiro do segundo player
-	init_shot(&shot3, NULL, 3);	  // Inicializa o tiro do alien
+	Shot shot = {0};				   // tiro
+	Shot shot1 = {0};				   // tiro do segundo player
+	Shot shot2 = {0};				   // tiro do alien
+	init_shot(&shot, &ship, 0);		   // Inicializa o tiro
+	init_shot(&shot1, &ship1, 1);	   // Inicializa o tiro do segundo player
+	init_alien_shot(&shot2, invasion); // Inicializa o tiro do alien
 	init_shots_images();
 	while (playing)
 	{
@@ -405,7 +405,12 @@ int main(int argc, char const *argv[])
 					move_shot(&shot, dificulty); // Move o tiro do player
 					if (players == 2)
 					{
-						move_shot(&shot2, dificulty); // Move o tiro do segundo player
+						ship_move(&ship1);
+						move_shot(&shot1, dificulty); // Move o tiro do segundo player
+					}
+					if (dificulty == 1)
+					{
+						move_shot(&shot2, dificulty); // Move o tiro do alien
 					}
 				}
 
@@ -422,13 +427,17 @@ int main(int argc, char const *argv[])
 				}
 
 				draw_ship(&ship);
-				draw_shot(&shot, NULL); // Desenha o tiro do player
+				draw_shot(&shot); // Desenha o tiro do player
 				if (players == 2)
 				{
-					ship_move(&ship2);
-					draw_ship(&ship2);
-					draw_shot(&shot2, NULL); // Desenha o tiro do segundo player
+					draw_ship(&ship1);
+					draw_shot(&shot1); // Desenha o tiro do segundo player
 				}
+				if (dificulty == 1)
+				{
+					draw_shot(&shot2); // Move o tiro do alien
+				}
+
 				draw_alien_invasion(invasion);
 
 				draw_menu(NULL, NULL, NULL); // Desenha os pontos na tela
@@ -452,19 +461,21 @@ int main(int argc, char const *argv[])
 							{
 								alien->alive = 0;
 								shot.active = 0;
-								points += 10; // Adiciona pontos ao jogador
-											  // Aqui você pode adicionar pontuação ou efeitos visuais
+								points += 10;				   // Adiciona pontos ao jogador
+								alien_atack(&shot2, invasion); // Atira o alien
 							}
-							if (players == 2 && shot2.active)
+							if (players == 2 && shot1.active)
 							{
-								int sx1b = shot2.x;
-								int sy1b = shot2.y;
-								int sx2b = shot2.x + SHOT_W;
-								int sy2b = shot2.y + SHOT_H;
+								int sx1b = shot1.x;
+								int sy1b = shot1.y;
+								int sx2b = shot1.x + SHOT_W;
+								int sy2b = shot1.y + SHOT_H;
 								if (collide(ax1, ay1, ax2, ay2, sx1b, sy1b, sx2b, sy2b))
 								{
 									alien->alive = 0;
-									shot2.active = 0;
+									shot1.active = 0;
+									points += 10;
+									alien_atack(&shot2, invasion); // Atira o alien
 								}
 							}
 							// --- Colisão do alien com a nave ---
@@ -480,15 +491,43 @@ int main(int argc, char const *argv[])
 							}
 							if (players == 2)
 							{
-								int ship2_x1 = ship2.x;
-								int ship2_y1 = SHIP_Y;
-								int ship2_x2 = ship2.x + SHIP_W;
-								int ship2_y2 = SHIP_Y + SHIP_H;
-								if (collide(ax1, ay1, ax2, ay2, ship2_x1, ship2_y1, ship2_x2, ship2_y2))
+								int ship1_x1 = ship1.x;
+								int ship1_y1 = SHIP_Y;
+								int ship1_x2 = ship1.x + SHIP_W;
+								int ship1_y2 = SHIP_Y + SHIP_H;
+								if (collide(ax1, ay1, ax2, ay2, ship1_x1, ship1_y1, ship1_x2, ship1_y2))
 								{
 									printf("Colisão entre alien e nave!\n");
 									points -= 20; // Penaliza o jogador
 									in_menu = 4;  // Muda para o menu de fim de jogo
+								}
+							}
+						}
+						if (dificulty == 1 && shot2.active) {
+							int shot2_x1 = shot2.x;
+							int shot2_y1 = shot2.y;
+							int shot2_x2 = shot2.x + SHOT_W;
+							int shot2_y2 = shot2.y + SHOT_H;
+							int ship_x1 = ship.x;
+							int ship_y1 = SHIP_Y;
+							int ship_x2 = ship.x + SHIP_W;
+							int ship_y2 = SHIP_Y + SHIP_H;
+							if (collide(shot2_x1, shot2_y1, shot2_x2, shot2_y2, ship_x1, ship_y1, ship_x2, ship_y2)) {
+								printf("Tiro do alien atingiu a nave!\n");
+								points -= 20;
+								in_menu = 4;
+								shot2.active = 0;
+							}
+							if (players == 2) {
+								int ship1_x1 = ship1.x;
+								int ship1_y1 = SHIP_Y;
+								int ship1_x2 = ship1.x + SHIP_W;
+								int ship1_y2 = SHIP_Y + SHIP_H;
+								if (collide(shot2_x1, shot2_y1, shot2_x2, shot2_y2, ship1_x1, ship1_y1, ship1_x2, ship1_y2)) {
+									printf("Tiro do alien atingiu a nave 2!\n");
+									points -= 20;
+									in_menu = 4;
+									shot2.active = 0;
 								}
 							}
 						}
@@ -583,14 +622,14 @@ int main(int argc, char const *argv[])
 					printf("\nvoltar ao menu");
 					// Reseta o jogo
 					init_ship(&ship);
-					init_ship(&ship2);
+					init_ship(&ship1);
 
 					destroy_alien_invasion(invasion); // Matriz de invasores
 					init_alien_invasion(invasion);	  // Inicializa os invasores
 
-					init_shot(&shot, &ship, 0);	  // Inicializa o tiro
-					init_shot(&shot2, &ship2, 1); // Inicializa o tiro do segundo player
-					init_shot(&shot3, NULL, 3);	  // Inicializa o tiro do alien
+					init_shot(&shot, &ship, 0);		   // Inicializa o tiro
+					init_shot(&shot1, &ship1, 1);	   // Inicializa o tiro do segundo player
+					init_alien_shot(&shot2, invasion); // Inicializa o tiro do alien
 
 					in_menu = 1; // volta ao menu
 					points = 0;	 // Reseta os pontos
@@ -614,7 +653,7 @@ int main(int argc, char const *argv[])
 
 				if (players == 2 && (ev.keyboard.keycode == ALLEGRO_KEY_LEFT || ev.keyboard.keycode == ALLEGRO_KEY_RIGHT || ev.keyboard.keycode == ALLEGRO_KEY_UP))
 				{
-					ship_keyboard(&ship2, &shot2, ev.keyboard.keycode, 0);
+					ship_keyboard(&ship1, &shot1, ev.keyboard.keycode, 0);
 				}
 			}
 		}

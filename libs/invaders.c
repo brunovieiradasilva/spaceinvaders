@@ -15,31 +15,31 @@ ALLEGRO_BITMAP *shot2_png = NULL;
 
 bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
 {
-	if (ax1 > bx2)
-		return false;
-	if (ax2 < bx1)
-		return false;
-	if (ay1 > by2)
-		return false;
-	if (ay2 < by1)
-		return false;
+    if (ax1 > bx2)
+        return false;
+    if (ax2 < bx1)
+        return false;
+    if (ay1 > by2)
+        return false;
+    if (ay2 < by1)
+        return false;
 
-	return true;
+    return true;
 }
 
 bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2)
 {
-	if (ax < bx1 || ax > bx2)
-		return false;
-	if (ay < by1 || ay > by2)
-		return false;
+    if (ax < bx1 || ax > bx2)
+        return false;
+    if (ay < by1 || ay > by2)
+        return false;
 
-	return true;
+    return true;
 }
 
 int randon(int lo, int hi)
 {
-	return lo + (rand() % (hi - lo + 1));
+    return lo + (rand() % (hi - lo + 1));
 }
 
 void init_ship(Ship *ships)
@@ -226,10 +226,21 @@ int move_alien_invasion(Alien *invasion[4][6], int dificulty)
         for (int j = 0; j < 6; j++)
         {
             Alien *a = invasion[i][j];
-            if (a->direction == 1 && a->x - ALIEN_SPEEDX < 0 && a->alive == 1) // indo para a esquerda
-                need_move_down = 1;
-            if (a->direction == 2 && a->x + ALIEN_SPEEDX > SCREEN_W - ALIEN_W && a->alive == 1) // indo para a direita
-                need_move_down = 1;
+
+            if (dificulty == 1)
+            {
+                if (a->direction == 1 && a->x - (ALIEN_SPEEDX * 2) < 0 && a->alive == 1) // indo para a esquerda
+                    need_move_down = 1;
+                if (a->direction == 2 && a->x + (ALIEN_SPEEDX * 2) > SCREEN_W - ALIEN_W && a->alive == 1) // indo para a direita
+                    need_move_down = 1;
+            }
+            else
+            {
+                if (a->direction == 1 && a->x - ALIEN_SPEEDX < 0 && a->alive == 1) // indo para a esquerda
+                    need_move_down = 1;
+                if (a->direction == 2 && a->x + ALIEN_SPEEDX > SCREEN_W - ALIEN_W && a->alive == 1) // indo para a direita
+                    need_move_down = 1;
+            }
         }
     }
 
@@ -287,8 +298,8 @@ void destroy_alien_invasion(Alien *invasion[4][6])
 void init_shots_images()
 {
     shot0_png = al_load_bitmap("imgs/shot0.png");
-    shot1_png = al_load_bitmap("imgs/shot0.png");
-    shot2_png = al_load_bitmap("imgs/shot0.png");
+    shot1_png = al_load_bitmap("imgs/shot1.png");
+    shot2_png = al_load_bitmap("imgs/shot2.png");
 
     if (!shot0_png || !shot1_png || !shot2_png)
     {
@@ -309,52 +320,42 @@ void init_shot(Shot *shot, Ship *ship, int type)
         shot->x = -100;
         shot->y = -100;
     }
+
+    shot->speed = SHOT_SPEED; // Define a velocidade do tiro
 }
 
-void draw_shot(Shot *shot, Alien *alien)
+void draw_shot(Shot *shot)
 {
-    if (alien == NULL)
+
+    if (shot->type == 0 && shot0_png)
+    {
+        al_draw_scaled_bitmap(shot0_png, 0, 0, al_get_bitmap_width(shot0_png), al_get_bitmap_height(shot0_png), shot->x, shot->y, 50, 50, 0);
+    }
+    else if (shot->type == 1 && shot1_png)
+    {
+        al_draw_scaled_bitmap(shot1_png, 0, 0, al_get_bitmap_width(shot1_png), al_get_bitmap_height(shot1_png), shot->x, shot->y, 50, 50, 0);
+    }
+    else if (shot->type == 2 && shot2_png)
     {
 
-        if (shot->type == 0 && shot0_png)
-        {
-            al_draw_scaled_bitmap(shot0_png, 0, 0, al_get_bitmap_width(shot0_png), al_get_bitmap_height(shot0_png), shot->x, shot->y, 50, 50, 0);
-        }
-        else if (shot->type == 1 && shot1_png)
-        {
-            al_draw_bitmap(shot1_png, shot->x, shot->y, 0);
-        }
-        else
-        {
-            printf("Imagem do tiro nao carregada\n");
-        }
+        al_draw_scaled_bitmap(shot2_png, 0, 0, al_get_bitmap_width(shot2_png), al_get_bitmap_height(shot2_png), shot->x, shot->y, 50, 50, 0);
     }
     else
     {
-        if (shot->type == 2 && shot2_png)
-        {
-            shot->x = alien->x + ALIEN_W / 2 - SHOT_W / 2; // Centraliza o tiro no alien
-            shot->y = alien->y + ALIEN_H;                  // Posiciona o tiro abaixo do alien
-            printf("Imagem do tiro 3 carregada\n");
-            al_draw_bitmap(shot2_png, shot->x, shot->y, 0);
-        }
-        else
-        {
-            printf("Imagem do tiro do alien nao carregada\n");
-        }
+        printf("Imagem do tiro do alien nao carregada\n");
     }
 }
 void move_shot(Shot *shot, int dificulty)
 {
     if (shot->active)
     {
-        if (shot->type == 0) // shot1
+        if (dificulty == 1)
         {
-            shot->y -= SHOT_SPEED;
+            shot->y -= (shot->speed * 2);
         }
-        else if (shot->type == 1) // shot2
+        else
         {
-            shot->y -= SHOT_SPEED;
+            shot->y -= shot->speed;
         }
     }
     else
@@ -414,22 +415,38 @@ void shot_colide(Shot *shot, Alien *alien)
     printf("Tiro colidiu com o alien!\n");
 }
 
-void alien_shot(Alien *invasion[4][6], Shot *shot)
+void init_alien_shot(Shot *shot, Alien *invasion[4][6])
 {
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 6; j++)
-		{
-			Alien *a = invasion[i][j];
-			if (a->alive == 1 && collide(shot->x, shot->y, shot->x + SHOT_W, shot->y + SHOT_H, a->x, a->y, a->x + ALIEN_W, a->y + ALIEN_H))
-			{
-				a->alive = 0;
-				shot->active = 0;
-				return;
-			}
-		}
-	}
 
+    shot->x = -100;
+    shot->y = -100;
+    shot->speed = -SHOT_SPEED; // Define a velocidade do tiro
+    shot->active = 1;          // Marca o tiro como ativo
+    shot->type = 2;            // Marca o tiro como do alien
+}
+
+void alien_atack(Shot *shot, Alien *invasion[4][6])
+{
+    Alien *a;
+    do
+    {
+        a = invasion[randon(0, 3)][randon(0, 5)];
+    } while (a->alive == 0);
+
+    shot->x = a->x + ALIEN_W / 2 - SHOT_W / 2; // Centraliza o tiro na nave
+    shot->y = a->y - SHOT_H;                   // Posiciona o tiro acima da nave
+
+    if (shot->active)
+    {
+        printf("Ja existe um ataque disparado!\n");
+        return;
+    }
+    else
+    {
+
+        shot->active = 1; // Marca que o tiro foi disparado
+        printf("Ataque disparado!\n");
+    }
 }
 
 void destroy_space_invaders()
