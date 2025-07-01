@@ -10,27 +10,89 @@
 #define SCREEN_H 720
 #define WORLD_H 60
 
-#define SHIP_W 100
-#define SHIP_H 50
+#define SHIP_W 64
+#define SHIP_H 64
 #define SHIP_Y (SCREEN_H - 60 - SHIP_H)
-#define SHIP_SPEED 70
+#define SHIP_SPEED 30
 
-typedef struct Ship{
-float x;
-}Ship;
+#define ALIEN_W 72
+#define ALIEN_H 72
+#define ALIEN_Y NULL
+#define ALIEN_SPEEDX 25
+#define ALIEN_SPEEDY ALIEN_H
 
-void init_ship(Ship *ships);
+#define SHOT_W 8
+#define SHOT_H 16
+#define SHOT_SPEED 30
 
-void draw_ship(Ship *ships);
+typedef struct Ship
+{
+    float x;
+    int direction; // 0:parked , 1: left, 2: right
+} Ship;
 
-typedef struct Button{
+typedef struct Alien
+{
+    float x;
+    float y;
+    int direction; // 0:parked , 1: left, 2: right
+    int alive; // 0: inactive, 1: active
+} Alien;
+
+typedef struct Shot
+{
+    float x;
+    float y;
+    float speed;
+    int active; // 0: inactive, 1: active 
+    int type;   // 0: alien shot, 1: ship shot
+} Shot;
+
+typedef struct Button
+{
     int x;
     int y;
     int w;
     int h;
     char *text;
-}Button;
+} Button;
 
-void ship_atack();
+void init_alien(Alien *alien);
 
-void ship_keyboard(Ship *s, int t);
+void draw_alien(Alien *alien);
+
+int alien_move(Alien *alien);
+
+void destroy_alien(Alien *alien);
+
+void init_ship(Ship *ships);
+
+void draw_ship(Ship *ships);
+
+void ship_atack(Ship *ship, Shot *shot);
+
+void ship_keyboard(Ship *ship,Shot *shot, int t, int type);
+
+void ship_move(Ship *s);
+
+void destroy_ship(Ship *ships);
+
+void init_alien_invasion(Alien *invasion[4][6]);
+
+void draw_alien_invasion(Alien *invasion[4][6]);
+
+void move_alien_invasion(Alien *invasion[4][6], int dificulty);
+
+void destroy_alien_invasion(Alien *invasion[4][6]);
+
+void init_shots_images();
+
+void init_shot(Shot *shot,Ship *ship, int type);
+
+void draw_shot(Shot *shot, Alien *alien);
+
+void move_shot(Shot *shot, int dificulty);
+
+void destroy_shot(Shot *shot);
+
+void destroy_space_invaders();

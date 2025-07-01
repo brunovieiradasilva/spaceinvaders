@@ -13,7 +13,7 @@
 #include <windows.h>
 #include "libs/invaders.h"
 
-const float FPS = 30;
+const float FPS = 10;
 
 ALLEGRO_BITMAP *background_png = NULL;
 ALLEGRO_BITMAP *background_png1 = NULL;
@@ -27,10 +27,11 @@ ALLEGRO_FILE *record_file;
 
 int record_normal = 0;
 int record_dificil = 0;
-int in_menu = 1;
+int in_menu = 1;		 // 1: menu principal, 2: menu de dificuldade, 3: jogo, 4: menu de fim de jogo
 int dificulty = 0;		 // 0: normal, 1: dificil
 int players = 1;		 // 1: player, 2: multiplayer
 int background_type = 0; // 0: background_png, 1: background_png1, 2: background_png2
+int points = 0;			 // Pontos do jogador
 int randon(int lo, int hi)
 {
 	return lo + (rand() % (hi - lo + 1));
@@ -110,6 +111,17 @@ void play_music(int type)
 }
 void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 {
+	if (in_menu == 3)
+	{
+		int rec_x = 30;
+		int rec_y = 20;
+		char buf[16];
+		sprintf(buf, "%d", points);
+		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "pontos:");
+		al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y, 0, buf);
+		return;
+	}
+
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
 	btn3->text = "sair";
@@ -199,6 +211,33 @@ void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 		al_draw_text(font, al_map_rgb(255, 255, 255), btn1->x + btn1->w / 2, btn1->y + (btn1->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn1->text);
 		al_draw_text(font, al_map_rgb(255, 255, 255), btn2->x + btn2->w / 2, btn2->y + (btn2->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn2->text);
 		al_draw_text(font, al_map_rgb(255, 255, 255), btn3->x + btn3->w / 2, btn3->y + (btn3->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn3->text);
+	}
+	else if (in_menu == 4)
+	{
+		int rec_x = 30;
+		int rec_y = 20;
+		char buf[16];
+		sprintf(buf, "%d", points);
+		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "pontos:");
+		al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y, 0, buf);
+		if (points > record_normal && dificulty == 0)
+		{
+			record_normal = points;
+			al_fseek(record_file, 0, ALLEGRO_SEEK_SET);
+			char buf[32];
+			sprintf(buf, "%d\n", record_normal);
+			al_fputs(record_file, buf);
+			al_fflush(record_file);
+		}
+		else if (points > record_dificil && dificulty == 1)
+		{
+			record_dificil = points;
+			al_fseek(record_file, sizeof(int), ALLEGRO_SEEK_SET);
+			char buf[32];
+			sprintf(buf, "%d\n", record_dificil);
+			al_fputs(record_file, buf);
+			al_fflush(record_file);
+		}
 	}
 }
 
@@ -321,10 +360,22 @@ int main(int argc, char const *argv[])
 	int playing = 1;
 	init_background();
 	play_music(0); // Toca a música de fundo
+
 	Ship ship = {0};
 	Ship ship2 = {0};
 	init_ship(&ship);
 	init_ship(&ship2);
+
+	Alien *invasion[4][6] = {0};   // Matriz de invasores
+	init_alien_invasion(invasion); // Inicializa os invasores
+
+	Shot shot = {0};			  // tiro
+	Shot shot2 = {0};			  // tiro do segundo player
+	Shot shot3 = {0};			  // tiro do alien
+	init_shot(&shot, &ship, 0);	  // Inicializa o tiro
+	init_shot(&shot2, &ship2, 1); // Inicializa o tiro do segundo player
+	init_shot(&shot3, NULL, 3);	  // Inicializa o tiro do alien
+	init_shots_images();
 	while (playing)
 	{
 		ALLEGRO_EVENT ev;
@@ -344,11 +395,116 @@ int main(int argc, char const *argv[])
 				al_clear_to_color(al_map_rgb(0, 0, 0));
 				draw_menu(&btn_singleplayer, &btn_multiplayer, &btn_sair);
 			}
+			else if (in_menu == 4)
+			{
+				al_clear_to_color(al_map_rgb(0, 0, 0));
+				draw_background(background_type);
+				// Desenha o recorde
+				int rec_x = 30;
+				int rec_y = 20;
+				char buf_normal[16], buf_dificil[16];
+				sprintf(buf_normal, "%d", record_normal);
+				sprintf(buf_dificil, "%d", record_dificil);
+				al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "recorde");
+				al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + al_get_font_line_height(font) + 5, 0, "normal:");
+				al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + al_get_font_line_height(font) + 5, 0, buf_normal);
+				al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + 2 * al_get_font_line_height(font) + 10, 0, "dificil:");
+				al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + 2 * al_get_font_line_height(font) + 10, 0, buf_dificil);
+			}
 			else
 			{
 				al_clear_to_color(al_map_rgb(0, 0, 0));
 				draw_background(background_type);
+				// Move a nave a cada 1 segundo
+				if (al_get_timer_count(timer) % (int)(FPS / 10) == 0)
+				{
+					ship_move(&ship);
+					move_shot(&shot, dificulty); // Move o tiro do player
+					if (players == 2)
+					{
+						move_shot(&shot2, dificulty); // Move o tiro do segundo player
+					}
+				}
+
+				if (al_get_timer_count(timer) % (int)FPS == 0)
+				{
+					// Move os invasores a cada segundo
+					move_alien_invasion(invasion, dificulty);
+				}
+
 				draw_ship(&ship);
+				draw_shot(&shot, NULL); // Desenha o tiro do player
+				if (players == 2)
+				{
+					ship_move(&ship2);
+					draw_ship(&ship2);
+					draw_shot(&shot2, NULL); // Desenha o tiro do segundo player
+				}
+				draw_alien_invasion(invasion);
+				printf("teste1\n");
+				draw_menu(NULL, NULL, NULL); // Desenha os pontos na tela
+				printf("teste2\n");
+				for (int i = 0; i < 4; i++)
+				{
+					for (int j = 0; j < 6; j++)
+					{
+						Alien *alien = invasion[i][j];
+						if (alien && alien->alive)
+						{
+							int ax1 = alien->x;
+							int ay1 = alien->y;
+							int ax2 = alien->x + ALIEN_W;
+							int ay2 = alien->y + ALIEN_H;
+							int sx1 = shot.x;
+							int sy1 = shot.y;
+							int sx2 = shot.x + SHOT_W;
+							int sy2 = shot.y + SHOT_H;
+							if (collide(ax1, ay1, ax2, ay2, sx1, sy1, sx2, sy2) && shot.active)
+							{
+								alien->alive = 0;
+								shot.active = 0;
+								points += 10; // Adiciona pontos ao jogador
+											  // Aqui você pode adicionar pontuação ou efeitos visuais
+							}
+							if (players == 2 && shot2.active)
+							{
+								int sx1b = shot2.x;
+								int sy1b = shot2.y;
+								int sx2b = shot2.x + SHOT_W;
+								int sy2b = shot2.y + SHOT_H;
+								if (collide(ax1, ay1, ax2, ay2, sx1b, sy1b, sx2b, sy2b))
+								{
+									alien->alive = 0;
+									shot2.active = 0;
+								}
+							}
+							// --- Colisão do alien com a nave ---
+							int ship_x1 = ship.x;
+							int ship_y1 = SHIP_Y;
+							int ship_x2 = ship.x + SHIP_W;
+							int ship_y2 = SHIP_Y + SHIP_H;
+							if (collide(ax1, ay1, ax2, ay2, ship_x1, ship_y1, ship_x2, ship_y2))
+							{
+								printf("Colisão entre alien e nave!\n");
+								points -= 20; // Penaliza o jogador
+								in_menu = 4;  // Muda para o menu de fim de jogo
+							}
+							if (players == 2)
+							{
+								int ship2_x1 = ship2.x;
+								int ship2_y1 = SHIP_Y;
+								int ship2_x2 = ship2.x + SHIP_W;
+								int ship2_y2 = SHIP_Y + SHIP_H;
+								if (collide(ax1, ay1, ax2, ay2, ship2_x1, ship2_y1, ship2_x2, ship2_y2))
+								{
+									printf("Colisão entre alien e nave!\n");
+									points -= 20; // Penaliza o jogador
+									in_menu = 4;  // Muda para o menu de fim de jogo
+								}
+							}
+						}
+					}
+				}
 			}
 
 			al_flip_display();
@@ -398,13 +554,13 @@ int main(int argc, char const *argv[])
 				{
 					printf("\nSingleplayer selecionado");
 					players = 1;
-					in_menu = 0; // inicia o jogo singleplayer
+					in_menu = 3; // inicia o jogo singleplayer
 				}
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_multiplayer.x, btn_multiplayer.y, btn_multiplayer.x + btn_multiplayer.w, btn_multiplayer.y + btn_multiplayer.h))
 				{
 					printf("\nMultiplayer selecionado");
 					players = 2;
-					in_menu = 0; // inicia o jogo multiplayer
+					in_menu = 3; // inicia o jogo multiplayer
 				}
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
 				{
@@ -423,15 +579,29 @@ int main(int argc, char const *argv[])
 				printf("\nSair do jogo");
 				playing = 0; // Fecha o jogo
 			}
+			if (in_menu == 3)
+			{
+				if (ev.keyboard.keycode == ALLEGRO_KEY_A || ev.keyboard.keycode == ALLEGRO_KEY_W || ev.keyboard.keycode == ALLEGRO_KEY_D)
+					ship_keyboard(&ship, &shot, ev.keyboard.keycode, 0);
 
+				if (players == 2)
+				{
+					ship_keyboard(&ship2, &shot2, ev.keyboard.keycode, 0);
+				}
+			}
+		}
+
+		else if (ev.type == ALLEGRO_EVENT_KEY_UP)
+		{
 			if (!in_menu)
 			{
-				ship_keyboard(&ship, ev.keyboard.keycode);
+				ship_keyboard(&ship, NULL, ev.keyboard.keycode, 1);
 			}
 		}
 	}
 
 	// procedimentos de destruição
+	destroy_space_invaders();
 	al_fclose(record_file);
 	al_destroy_bitmap(background_png);
 	al_destroy_bitmap(background_png1);
