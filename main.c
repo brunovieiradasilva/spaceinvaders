@@ -214,12 +214,30 @@ void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 	}
 	else if (in_menu == 4)
 	{
-		int rec_x = 30;
-		int rec_y = 20;
-		char buf[16];
-		sprintf(buf, "%d", points);
-		al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "pontos:");
-		al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y, 0, buf);
+		int center_x = SCREEN_W / 2;
+		int center_y = SCREEN_H / 2;
+		int text_h = al_get_font_line_height(font);
+
+		// Desenha o texto "FIM DE JOGO"
+		al_draw_text(font, al_map_rgb(255, 0, 0), center_x, center_y - text_h * 2, ALLEGRO_ALIGN_CENTRE, "FIM DE JOGO");
+
+		// Desenha o quadrado amarelo com os pontos
+		char pontos_str[32];
+		sprintf(pontos_str, "Pontos: %d", points);
+		int rect_w = al_get_text_width(font, pontos_str) + 40;
+		int rect_h = text_h + 20;
+		int rect_x = center_x - rect_w / 2;
+		int rect_y = center_y - rect_h / 2;
+		al_draw_filled_rectangle(rect_x, rect_y, rect_x + rect_w, rect_y + rect_h, al_map_rgb(255, 255, 0));
+		al_draw_rectangle(rect_x, rect_y, rect_x + rect_w, rect_y + rect_h, al_map_rgb(200, 200, 0), 3);
+		al_draw_text(font, al_map_rgb(0, 0, 0), center_x, rect_y + 10, ALLEGRO_ALIGN_CENTRE, pontos_str);
+
+		// Desenha o botão de sair embaixo do quadrado
+		btn3->y = rect_y + rect_h + 40;
+		btn3->x = center_x - btn3->w / 2;
+		al_draw_filled_rounded_rectangle(btn3->x, btn3->y, btn3->x + btn3->w, btn3->y + btn3->h, 12, 12, al_map_rgb(60, 60, 60));
+		al_draw_rounded_rectangle(btn3->x, btn3->y, btn3->x + btn3->w, btn3->y + btn3->h, 12, 12, al_map_rgb(0, 0, 0), 2);
+		al_draw_text(font, al_map_rgb(255, 255, 255), btn3->x + btn3->w / 2, btn3->y + (btn3->h - text_h) / 2, ALLEGRO_ALIGN_CENTRE, btn3->text);
 		if (points > record_normal && dificulty == 0)
 		{
 			record_normal = points;
@@ -397,19 +415,7 @@ int main(int argc, char const *argv[])
 			}
 			else if (in_menu == 4)
 			{
-				al_clear_to_color(al_map_rgb(0, 0, 0));
-				draw_background(background_type);
-				// Desenha o recorde
-				int rec_x = 30;
-				int rec_y = 20;
-				char buf_normal[16], buf_dificil[16];
-				sprintf(buf_normal, "%d", record_normal);
-				sprintf(buf_dificil, "%d", record_dificil);
-				al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y, 0, "recorde");
-				al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + al_get_font_line_height(font) + 5, 0, "normal:");
-				al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + al_get_font_line_height(font) + 5, 0, buf_normal);
-				al_draw_text(font, al_map_rgb(255, 255, 255), rec_x, rec_y + 2 * al_get_font_line_height(font) + 10, 0, "dificil:");
-				al_draw_text(font, al_map_rgb(255, 255, 0), rec_x + 110, rec_y + 2 * al_get_font_line_height(font) + 10, 0, buf_dificil);
+			draw_menu(NULL, NULL, &btn_sair);	
 			}
 			else
 			{
