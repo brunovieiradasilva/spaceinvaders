@@ -57,11 +57,19 @@ typedef struct Button
     char *text;
 } Button;
 
+bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2);
+
+bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2);
+
+int randon(int lo, int hi);
+
 void init_alien(Alien *alien);
 
 void draw_alien(Alien *alien);
 
 int alien_move(Alien *alien);
+
+void alien_shot(Alien *invasion[4][6], Shot *shot);
 
 void destroy_alien(Alien *alien);
 
@@ -81,7 +89,7 @@ void init_alien_invasion(Alien *invasion[4][6]);
 
 void draw_alien_invasion(Alien *invasion[4][6]);
 
-void move_alien_invasion(Alien *invasion[4][6], int dificulty);
+int move_alien_invasion(Alien *invasion[4][6], int dificulty);
 
 void destroy_alien_invasion(Alien *invasion[4][6]);
 

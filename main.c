@@ -32,10 +32,6 @@ int dificulty = 0;		 // 0: normal, 1: dificil
 int players = 1;		 // 1: player, 2: multiplayer
 int background_type = 0; // 0: background_png, 1: background_png1, 2: background_png2
 int points = 0;			 // Pontos do jogador
-int randon(int lo, int hi)
-{
-	return lo + (rand() % (hi - lo + 1));
-}
 
 void must_init(bool test, const char *description)
 {
@@ -89,6 +85,11 @@ void draw_background(int type)
 	else
 	{
 		printf("Imagem de fundo nao carregada\n");
+	}
+
+	if (in_menu == 3)
+	{
+		al_draw_filled_rectangle(0, SCREEN_H - 72, SCREEN_W, SCREEN_H, al_map_rgb(0, 200, 0));
 	}
 }
 
@@ -259,30 +260,6 @@ void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 	}
 }
 
-bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
-{
-	if (ax1 > bx2)
-		return false;
-	if (ax2 < bx1)
-		return false;
-	if (ay1 > by2)
-		return false;
-	if (ay2 < by1)
-		return false;
-
-	return true;
-}
-
-bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2)
-{
-	if (ax < bx1 || ax > bx2)
-		return false;
-	if (ay < by1 || ay > by2)
-		return false;
-
-	return true;
-}
-
 int main(int argc, char const *argv[])
 {
 
@@ -415,7 +392,7 @@ int main(int argc, char const *argv[])
 			}
 			else if (in_menu == 4)
 			{
-			draw_menu(NULL, NULL, &btn_sair);	
+				draw_menu(NULL, NULL, &btn_sair);
 			}
 			else
 			{
@@ -435,7 +412,13 @@ int main(int argc, char const *argv[])
 				if (al_get_timer_count(timer) % (int)FPS == 0)
 				{
 					// Move os invasores a cada segundo
-					move_alien_invasion(invasion, dificulty);
+					if (move_alien_invasion(invasion, dificulty))
+					{
+						printf("Invasores chegaram ao fundo da tela!\n");
+						points -= 20;
+						in_menu = 4; // Muda para o menu de fim de jogo
+						continue;
+					}
 				}
 
 				draw_ship(&ship);
@@ -447,9 +430,9 @@ int main(int argc, char const *argv[])
 					draw_shot(&shot2, NULL); // Desenha o tiro do segundo player
 				}
 				draw_alien_invasion(invasion);
-				printf("teste1\n");
+
 				draw_menu(NULL, NULL, NULL); // Desenha os pontos na tela
-				printf("teste2\n");
+
 				for (int i = 0; i < 4; i++)
 				{
 					for (int j = 0; j < 6; j++)
@@ -511,6 +494,25 @@ int main(int argc, char const *argv[])
 						}
 					}
 				}
+
+				int all_dead = 1;
+				for (int i = 0; i < 4; i++)
+				{
+					for (int j = 0; j < 6; j++)
+					{
+						if (invasion[i][j] && invasion[i][j]->alive)
+						{
+							all_dead = 0;
+							break;
+						}
+					}
+					if (!all_dead)
+						break;
+				}
+				if (all_dead)
+				{
+					in_menu = 4; // Termina o jogo (vai para o menu de fim de jogo)
+				}
 			}
 
 			al_flip_display();
@@ -554,7 +556,7 @@ int main(int argc, char const *argv[])
 					playing = 0; // Fecha o jogo
 				}
 			}
-			else
+			else if (in_menu == 2)
 			{
 				if (collide_btn(ev.mouse.x, ev.mouse.y, btn_singleplayer.x, btn_singleplayer.y, btn_singleplayer.x + btn_singleplayer.w, btn_singleplayer.y + btn_singleplayer.h))
 				{
@@ -574,6 +576,26 @@ int main(int argc, char const *argv[])
 					in_menu = 1; // volta ao menu
 				}
 			}
+			else if (in_menu == 4)
+			{
+				if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
+				{
+					printf("\nvoltar ao menu");
+					// Reseta o jogo
+					init_ship(&ship);
+					init_ship(&ship2);
+
+					destroy_alien_invasion(invasion); // Matriz de invasores
+					init_alien_invasion(invasion);	  // Inicializa os invasores
+
+					init_shot(&shot, &ship, 0);	  // Inicializa o tiro
+					init_shot(&shot2, &ship2, 1); // Inicializa o tiro do segundo player
+					init_shot(&shot3, NULL, 3);	  // Inicializa o tiro do alien
+
+					in_menu = 1; // volta ao menu
+					points = 0;	 // Reseta os pontos
+				}
+			}
 		}
 		// evento pressionar de tecla
 		else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
@@ -590,7 +612,7 @@ int main(int argc, char const *argv[])
 				if (ev.keyboard.keycode == ALLEGRO_KEY_A || ev.keyboard.keycode == ALLEGRO_KEY_W || ev.keyboard.keycode == ALLEGRO_KEY_D)
 					ship_keyboard(&ship, &shot, ev.keyboard.keycode, 0);
 
-				if (players == 2)
+				if (players == 2 && (ev.keyboard.keycode == ALLEGRO_KEY_LEFT || ev.keyboard.keycode == ALLEGRO_KEY_RIGHT || ev.keyboard.keycode == ALLEGRO_KEY_UP))
 				{
 					ship_keyboard(&ship2, &shot2, ev.keyboard.keycode, 0);
 				}

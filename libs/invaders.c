@@ -13,6 +13,35 @@ ALLEGRO_BITMAP *shot0_png = NULL;
 ALLEGRO_BITMAP *shot1_png = NULL;
 ALLEGRO_BITMAP *shot2_png = NULL;
 
+bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
+{
+	if (ax1 > bx2)
+		return false;
+	if (ax2 < bx1)
+		return false;
+	if (ay1 > by2)
+		return false;
+	if (ay2 < by1)
+		return false;
+
+	return true;
+}
+
+bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2)
+{
+	if (ax < bx1 || ax > bx2)
+		return false;
+	if (ay < by1 || ay > by2)
+		return false;
+
+	return true;
+}
+
+int randon(int lo, int hi)
+{
+	return lo + (rand() % (hi - lo + 1));
+}
+
 void init_ship(Ship *ships)
 {
     ship_png = al_load_bitmap("imgs/spaceship.png");
@@ -77,7 +106,7 @@ void ship_keyboard(Ship *ship, Shot *shot, int t, int type)
     {
         ship->direction = 2; // right
     }
-    
+
     else if (t == ALLEGRO_KEY_W || t == ALLEGRO_KEY_UP)
     {
         ship_atack(ship, shot);
@@ -187,7 +216,7 @@ void draw_alien_invasion(Alien *invasion[4][6])
         }
     }
 }
-void move_alien_invasion(Alien *invasion[4][6], int dificulty)
+int move_alien_invasion(Alien *invasion[4][6], int dificulty)
 {
     int need_move_down = 0;
 
@@ -197,9 +226,9 @@ void move_alien_invasion(Alien *invasion[4][6], int dificulty)
         for (int j = 0; j < 6; j++)
         {
             Alien *a = invasion[i][j];
-            if (a->direction == 1 && a->x - ALIEN_SPEEDX < 0) // indo para a esquerda
+            if (a->direction == 1 && a->x - ALIEN_SPEEDX < 0 && a->alive == 1) // indo para a esquerda
                 need_move_down = 1;
-            if (a->direction == 2 && a->x + ALIEN_SPEEDX > SCREEN_W - ALIEN_W) // indo para a direita
+            if (a->direction == 2 && a->x + ALIEN_SPEEDX > SCREEN_W - ALIEN_W && a->alive == 1) // indo para a direita
                 need_move_down = 1;
         }
     }
@@ -219,8 +248,15 @@ void move_alien_invasion(Alien *invasion[4][6], int dificulty)
                     a->direction = 1;
                 // Move para baixo
                 a->y += ALIEN_H;
+
+                if (a->y > SCREEN_H - ALIEN_H && a->alive == 1)
+                {
+                    return 1; // Retorna 1 para indicar que os aliens chegaram ao fundo da tela
+                }
             }
         }
+
+        return 0;
     }
     else
     {
@@ -232,6 +268,7 @@ void move_alien_invasion(Alien *invasion[4][6], int dificulty)
                 alien_move(invasion[i][j]);
             }
         }
+        return 0; // Retorna 0 para indicar que o movimento foi bem-sucedido
     }
 }
 
@@ -370,11 +407,29 @@ void destroy_shot_images()
 void shot_colide(Shot *shot, Alien *alien)
 {
     shot->active = 0; // Reseta o estado do tiro
-    shot->x = -100;     // Marca o tiro como fora da tela
+    shot->x = -100;   // Marca o tiro como fora da tela
     shot->y = -100;
     alien->x = -100; // Marca o alien como destruído
     alien->y = -100;
     printf("Tiro colidiu com o alien!\n");
+}
+
+void alien_shot(Alien *invasion[4][6], Shot *shot)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 6; j++)
+		{
+			Alien *a = invasion[i][j];
+			if (a->alive == 1 && collide(shot->x, shot->y, shot->x + SHOT_W, shot->y + SHOT_H, a->x, a->y, a->x + ALIEN_W, a->y + ALIEN_H))
+			{
+				a->alive = 0;
+				shot->active = 0;
+				return;
+			}
+		}
+	}
+
 }
 
 void destroy_space_invaders()
