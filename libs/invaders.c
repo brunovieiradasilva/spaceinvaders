@@ -16,6 +16,7 @@ ALLEGRO_BITMAP *shot0_png = NULL;
 ALLEGRO_BITMAP *shot1_png = NULL;
 ALLEGRO_BITMAP *shot2_png = NULL;
 ALLEGRO_SAMPLE *sound1 = NULL;
+int ALIEN_SPEEDX = 25; // Speed of alien movement in the x direction
 
 void must_init(bool test, const char *description)
 {
@@ -121,11 +122,15 @@ void init_ship(Ship *ships, int type)
     ships->x = SCREEN_W / 2;
 }
 
-void draw_ship(Ship *ships)
+void draw_ship(Ship *ships, int type)
 {
-    if (ship_png)
+    if (ship_png && type == 0)
     {
         al_draw_bitmap(ship_png, ships->x, SHIP_Y, 0);
+    }
+    else if (ship_png1 && type == 1)
+    {
+        al_draw_bitmap(ship_png1, ships->x, SHIP_Y, 0);
     }
     else
     {

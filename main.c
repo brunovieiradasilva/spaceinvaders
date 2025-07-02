@@ -1,4 +1,4 @@
-//author: Bruno Vieira da Silva
+// author: Bruno Vieira da Silva
 
 #include <stdio.h>
 #include <allegro5/allegro.h>
@@ -337,8 +337,8 @@ int main(int argc, char const *argv[])
 	init_ship(&ship, 0);  // Inicializa a nave do player
 	init_ship(&ship1, 1); // Inicializa a nave do segundo player
 
-	Alien *invasion[4][6] = {0};   // Matriz de invasores
-	init_alien_invasion(invasion); // Inicializa os invasores
+	Alien *invasion[4][6] = {0};	  // Matriz de invasores
+	init_alien_invasion(invasion, 0); // Inicializa os invasores
 
 	Shot shot = {0};				   // tiro
 	Shot shot1 = {0};				   // tiro do segundo player
@@ -402,11 +402,11 @@ int main(int argc, char const *argv[])
 					}
 				}
 
-				draw_ship(&ship);
+				draw_ship(&ship, 0); // Desenha a nave do player
 				draw_shot(&shot); // Desenha o tiro do player
 				if (players == 2)
 				{
-					draw_ship(&ship1);
+					draw_ship(&ship1, 1); // Desenha a nave do segundo player
 					draw_shot(&shot1); // Desenha o tiro do segundo player
 				}
 				if (dificulty == 1)
@@ -561,16 +561,18 @@ int main(int argc, char const *argv[])
 					// Exibe uma mensagem de clique no botão normal
 					printf("\nDificuldade normal");
 					in_menu = 2;
-					dificulty = 0;					// Define a dificuldade como normal
-					background_type = randon(0, 2); // Escolhe um fundo aleatório
+					dificulty = 0;							  // Define a dificuldade como normal
+					init_alien_invasion(invasion, dificulty); // Inicializa os invasores
+					background_type = randon(0, 2);			  // Escolhe um fundo aleatório
 				}
 				// Verifica se o clique foi no botão de dificuldade difícil
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_dificil.x, btn_dificil.y, btn_dificil.x + btn_dificil.w, btn_dificil.y + btn_dificil.h))
 				{
 					printf("\nDificuldade dificil");
 					in_menu = 2;
-					dificulty = 1;					// Define a dificuldade como difícil
-					background_type = randon(0, 2); // Escolhe um fundo aleatório
+					dificulty = 1;							  // Define a dificuldade como difícil
+					init_alien_invasion(invasion, dificulty); // Inicializa os invasores
+					background_type = randon(0, 2);			  // Escolhe um fundo aleatório
 				}
 				// Verifica se o clique foi no botão sair
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
@@ -609,7 +611,6 @@ int main(int argc, char const *argv[])
 					init_ship(&ship1, 1);
 
 					destroy_alien_invasion(invasion); // Matriz de invasores
-					init_alien_invasion(invasion);	  // Inicializa os invasores
 
 					init_shot(&shot, &ship, 0);		   // Inicializa o tiro
 					init_shot(&shot1, &ship1, 1);	   // Inicializa o tiro do segundo player

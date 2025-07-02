@@ -20,7 +20,7 @@
 #define ALIEN_W 72
 #define ALIEN_H 72
 #define ALIEN_Y NULL
-int ALIEN_SPEEDX = 25; // Speed of alien movement in the x direction
+extern int ALIEN_SPEEDX; // Speed of alien movement in the x direction
 #define ALIEN_SPEEDY ALIEN_H
 
 #define SHOT_W 8
@@ -81,7 +81,7 @@ void destroy_alien(Alien *alien);
 
 void init_ship(Ship *ships, int type);
 
-void draw_ship(Ship *ships);
+void draw_ship(Ship *ships, int type);
 
 void ship_atack(Ship *ship, Shot *shot);
 
