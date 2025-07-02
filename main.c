@@ -563,7 +563,7 @@ int main(int argc, char const *argv[])
 					in_menu = 2;
 					dificulty = 0;							  // Define a dificuldade como normal
 					init_alien_invasion(invasion, dificulty); // Inicializa os invasores
-					background_type = randon(0, 2);			  // Escolhe um fundo aleatório
+					background_type = randon(1, 2);			  // Escolhe um fundo aleatório
 				}
 				// Verifica se o clique foi no botão de dificuldade difícil
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_dificil.x, btn_dificil.y, btn_dificil.x + btn_dificil.w, btn_dificil.y + btn_dificil.h))
@@ -572,7 +572,7 @@ int main(int argc, char const *argv[])
 					in_menu = 2;
 					dificulty = 1;							  // Define a dificuldade como difícil
 					init_alien_invasion(invasion, dificulty); // Inicializa os invasores
-					background_type = randon(0, 2);			  // Escolhe um fundo aleatório
+					background_type = randon(1, 2);			  // Escolhe um fundo aleatório
 				}
 				// Verifica se o clique foi no botão sair
 				else if (collide_btn(ev.mouse.x, ev.mouse.y, btn_sair.x, btn_sair.y, btn_sair.x + btn_sair.w, btn_sair.y + btn_sair.h))
@@ -615,7 +615,7 @@ int main(int argc, char const *argv[])
 					init_shot(&shot, &ship, 0);		   // Inicializa o tiro
 					init_shot(&shot1, &ship1, 1);	   // Inicializa o tiro do segundo player
 					init_alien_shot(&shot2, invasion); // Inicializa o tiro do alien
-					background_type = randon(0, 2);	   // Escolhe um fundo aleatório
+					background_type = randon(1, 2);	   // Escolhe um fundo aleatório
 					in_menu = 1;					   // volta ao menu
 					points = 0;						   // Reseta os pontos
 				}
