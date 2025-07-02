@@ -259,8 +259,12 @@ void destroy_alien(Alien *alien)
     }
 }
 
-void init_alien_invasion(Alien *invasion[4][6])
+void init_alien_invasion(Alien *invasion[4][6], int dificulty)
 {
+    if(dificulty == 1){
+        ALIEN_SPEEDX = 50; // Velocidade dos aliens no modo difícil
+    }
+
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 6; j++)

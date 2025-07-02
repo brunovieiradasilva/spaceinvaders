@@ -20,7 +20,7 @@
 #define ALIEN_W 72
 #define ALIEN_H 72
 #define ALIEN_Y NULL
-#define ALIEN_SPEEDX 25
+int ALIEN_SPEEDX = 25; // Speed of alien movement in the x direction
 #define ALIEN_SPEEDY ALIEN_H
 
 #define SHOT_W 8
@@ -91,7 +91,7 @@ void ship_move(Ship *s);
 
 void destroy_ship(Ship *ships);
 
-void init_alien_invasion(Alien *invasion[4][6]);
+void init_alien_invasion(Alien *invasion[4][6], int dificulty);
 
 void draw_alien_invasion(Alien *invasion[4][6]);
 
