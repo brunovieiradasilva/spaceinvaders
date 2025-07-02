@@ -72,7 +72,13 @@ spaceinvaders/
    make
    ```
    Isso irá gerar o executável main.exe.
-
+   
+2.1  **Compile diretamente pelo gcc**
+```
+gcc -I C:\allegro-5.0.10-mingw-4.7.0\include -c main.c
+gcc -I C:\allegro-5.0.10-mingw-4.7.0\include -c libs/invaders.c
+gcc -o main.exe main.o invaders.o C:\allegro-5.0.10-mingw-4.7.0\lib\liballegro-5.0.10-monolith-mt.a
+```
 ---
 
 ## Como Jogar
