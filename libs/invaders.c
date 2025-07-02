@@ -6,12 +6,25 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 ALLEGRO_BITMAP *ship_png = NULL;
+ALLEGRO_BITMAP *ship_png1 = NULL;
 ALLEGRO_BITMAP *alien_png = NULL;
 ALLEGRO_BITMAP *shot0_png = NULL;
 ALLEGRO_BITMAP *shot1_png = NULL;
 ALLEGRO_BITMAP *shot2_png = NULL;
+ALLEGRO_SAMPLE *sound1 = NULL;
+
+void must_init(bool test, const char *description)
+{
+    if (test)
+        return;
+
+    printf("couldn't initialize %s\n", description);
+    exit(1);
+}
 
 bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
 {
@@ -42,9 +55,63 @@ int randon(int lo, int hi)
     return lo + (rand() % (hi - lo + 1));
 }
 
-void init_ship(Ship *ships)
+void play_music(ALLEGRO_SAMPLE *sounds, int type)
 {
-    ship_png = al_load_bitmap("imgs/spaceship.png");
+    sound1 = sounds;
+    if (type == 0)
+    {
+        if (al_play_sample(sounds, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL) == 0)
+        {
+            printf("Erro ao tocar a musica\n");
+        }
+    }
+    else if (type == 1)
+    {
+        sounds = al_load_sample("sounds/audio_shot.flac");
+        must_init(sounds, "sound");
+
+        if (al_play_sample(sounds, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL) == 0)
+        {
+            printf("Erro ao tocar a musica\n");
+        }
+    }
+    else if (type == 2)
+    {
+        sounds = al_load_sample("sounds/audio_explode1.flac");
+        must_init(sounds, "sound");
+
+        if (al_play_sample(sounds, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL) == 0)
+        {
+            printf("Erro ao tocar a musica\n");
+        }
+    }
+    else if (type == 3)
+    {
+        sounds = al_load_sample("sounds/audio_explode2.flac");
+        must_init(sounds, "sound");
+
+        if (al_play_sample(sounds, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL) == 0)
+        {
+            printf("Erro ao tocar a musica\n");
+        }
+    }
+}
+
+void init_ship(Ship *ships, int type)
+{
+    if (type == 0)
+    {
+        ship_png = al_load_bitmap("imgs/spaceship.png");
+    }
+    else if (type == 1)
+    {
+        ship_png1 = al_load_bitmap("imgs/spaceship1.png");
+    }
+    else
+    {
+        printf("Tipo de nave invalido\n");
+        return;
+    }
     if (!ship_png)
     {
         printf("Nao foi possivel carregar a imagem da nave\n");
@@ -87,6 +154,7 @@ void ship_atack(Ship *ship, Shot *shot)
         shot->y = SHIP_Y - SHOT_H;                   // Posiciona o tiro acima da nave
 
         shot->active = 1; // Marca que o tiro foi disparado
+        play_music(sound1,1);    // Toca o som do tiro
         printf("Ataque disparado!\n");
     }
 }

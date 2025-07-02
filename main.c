@@ -33,15 +33,6 @@ int players = 1;		 // 1: player, 2: multiplayer
 int background_type = 0; // 0: background_png, 1: background_png1, 2: background_png2
 int points = 0;			 // Pontos do jogador
 
-void must_init(bool test, const char *description)
-{
-	if (test)
-		return;
-
-	printf("couldn't initialize %s\n", description);
-	exit(1);
-}
-
 void init_background()
 {
 	background_png = al_load_bitmap("imgs/background.png");
@@ -93,23 +84,6 @@ void draw_background(int type)
 	}
 }
 
-void play_music(int type)
-{
-	if (type == 0)
-	{
-		if (al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL) == 0)
-		{
-			printf("Erro ao tocar a musica\n");
-		}
-	}
-	else if (type == 1)
-	{
-		if (al_play_sample(sound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL) == 0)
-		{
-			printf("Erro ao tocar a musica\n");
-		}
-	}
-}
 void draw_menu(Button *btn1, Button *btn2, Button *btn3)
 {
 	if (in_menu == 3)
@@ -354,12 +328,12 @@ int main(int argc, char const *argv[])
 
 	int playing = 1;
 	init_background();
-	play_music(0); // Toca a música de fundo
+	play_music(sound, 0); // Toca a música de fundo
 
 	Ship ship = {0};
 	Ship ship1 = {0};
-	init_ship(&ship);
-	init_ship(&ship1);
+	init_ship(&ship, 0);  // Inicializa a nave do player
+	init_ship(&ship1, 1); // Inicializa a nave do segundo player
 
 	Alien *invasion[4][6] = {0};   // Matriz de invasores
 	init_alien_invasion(invasion); // Inicializa os invasores
@@ -463,6 +437,7 @@ int main(int argc, char const *argv[])
 								shot.active = 0;
 								points += 10;				   // Adiciona pontos ao jogador
 								alien_atack(&shot2, invasion); // Atira o alien
+								play_music(sound, 2);
 							}
 							if (players == 2 && shot1.active)
 							{
@@ -476,6 +451,7 @@ int main(int argc, char const *argv[])
 									shot1.active = 0;
 									points += 10;
 									alien_atack(&shot2, invasion); // Atira o alien
+									play_music(sound, 2);
 								}
 							}
 							// --- Colisão do alien com a nave ---
@@ -503,7 +479,8 @@ int main(int argc, char const *argv[])
 								}
 							}
 						}
-						if (dificulty == 1 && shot2.active) {
+						if (dificulty == 1 && shot2.active)
+						{
 							int shot2_x1 = shot2.x;
 							int shot2_y1 = shot2.y;
 							int shot2_x2 = shot2.x + SHOT_W;
@@ -512,18 +489,23 @@ int main(int argc, char const *argv[])
 							int ship_y1 = SHIP_Y;
 							int ship_x2 = ship.x + SHIP_W;
 							int ship_y2 = SHIP_Y + SHIP_H;
-							if (collide(shot2_x1, shot2_y1, shot2_x2, shot2_y2, ship_x1, ship_y1, ship_x2, ship_y2)) {
+							if (collide(shot2_x1, shot2_y1, shot2_x2, shot2_y2, ship_x1, ship_y1, ship_x2, ship_y2))
+							{
+								play_music(sound, 3);
 								printf("Tiro do alien atingiu a nave!\n");
 								points -= 20;
 								in_menu = 4;
 								shot2.active = 0;
 							}
-							if (players == 2) {
+							if (players == 2)
+							{
 								int ship1_x1 = ship1.x;
 								int ship1_y1 = SHIP_Y;
 								int ship1_x2 = ship1.x + SHIP_W;
 								int ship1_y2 = SHIP_Y + SHIP_H;
-								if (collide(shot2_x1, shot2_y1, shot2_x2, shot2_y2, ship1_x1, ship1_y1, ship1_x2, ship1_y2)) {
+								if (collide(shot2_x1, shot2_y1, shot2_x2, shot2_y2, ship1_x1, ship1_y1, ship1_x2, ship1_y2))
+								{
+									play_music(sound, 3);
 									printf("Tiro do alien atingiu a nave 2!\n");
 									points -= 20;
 									in_menu = 4;
@@ -621,8 +603,8 @@ int main(int argc, char const *argv[])
 				{
 					printf("\nvoltar ao menu");
 					// Reseta o jogo
-					init_ship(&ship);
-					init_ship(&ship1);
+					init_ship(&ship, 0);
+					init_ship(&ship1, 1);
 
 					destroy_alien_invasion(invasion); // Matriz de invasores
 					init_alien_invasion(invasion);	  // Inicializa os invasores
@@ -644,10 +626,17 @@ int main(int argc, char const *argv[])
 			if (ev.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
 			{
 				printf("\nSair do jogo");
-				playing = 0; // Fecha o jogo
+				if (in_menu == 3)
+				{
+					in_menu = 4;
+					continue;
+				}
+				else
+					playing = 0; // Fecha o jogo
 			}
 			if (in_menu == 3)
 			{
+
 				if (ev.keyboard.keycode == ALLEGRO_KEY_A || ev.keyboard.keycode == ALLEGRO_KEY_W || ev.keyboard.keycode == ALLEGRO_KEY_D)
 					ship_keyboard(&ship, &shot, ev.keyboard.keycode, 0);
 

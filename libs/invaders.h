@@ -5,6 +5,8 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #define SCREEN_W 1080
 #define SCREEN_H 720
@@ -57,6 +59,8 @@ typedef struct Button
     char *text;
 } Button;
 
+void must_init(bool test, const char *description);
+
 bool collide(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2);
 
 bool collide_btn(int ax, int ay, int bx1, int by1, int bx2, int by2);
@@ -75,7 +79,7 @@ void init_alien_shot(Shot *shot, Alien *invasion[4][6]);
 
 void destroy_alien(Alien *alien);
 
-void init_ship(Ship *ships);
+void init_ship(Ship *ships, int type);
 
 void draw_ship(Ship *ships);
 
@@ -104,5 +108,7 @@ void draw_shot(Shot *shot);
 void move_shot(Shot *shot, int dificulty);
 
 void destroy_shot(Shot *shot);
+
+void play_music(ALLEGRO_SAMPLE *sound, int type);
 
 void destroy_space_invaders();
