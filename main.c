@@ -612,9 +612,9 @@ int main(int argc, char const *argv[])
 					init_shot(&shot, &ship, 0);		   // Inicializa o tiro
 					init_shot(&shot1, &ship1, 1);	   // Inicializa o tiro do segundo player
 					init_alien_shot(&shot2, invasion); // Inicializa o tiro do alien
-
-					in_menu = 1; // volta ao menu
-					points = 0;	 // Reseta os pontos
+					background_type = randon(0, 2);	   // Escolhe um fundo aleatório
+					in_menu = 1;					   // volta ao menu
+					points = 0;						   // Reseta os pontos
 				}
 			}
 		}
@@ -629,6 +629,16 @@ int main(int argc, char const *argv[])
 				if (in_menu == 3)
 				{
 					in_menu = 4;
+					continue;
+				}
+				else if (in_menu == 4)
+				{
+					in_menu = 1; // Volta ao menu principal
+					continue;
+				}
+				else if (in_menu == 2)
+				{
+					in_menu = 1; // Volta ao menu principal
 					continue;
 				}
 				else
